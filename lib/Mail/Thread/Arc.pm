@@ -98,6 +98,11 @@ sub message_radius {
     20;
 }
 
+sub message_inner_radius {
+    my $self = shift;
+    return $self->message_radius - $self->message_radius / 4;
+}
+
 sub max_arc_radius {
     20;
 }
@@ -109,9 +114,18 @@ sub date_of {
 
 sub draw_message {
     my ($self, $message) = @_;
+
+    # maybe there's a proper way to stroke this - I be slack
     $self->imager->circle(
         color => '#000000',
         r => $self->message_radius,
+        x => $self->message_x( $message ),
+        'y' => $self->max_arc_radius + $self->message_radius,
+       );
+
+    $self->imager->circle(
+        color => '#ffffff',
+        r => $self->message_inner_radius,
         x => $self->message_x( $message ),
         'y' => $self->max_arc_radius + $self->message_radius,
        );
