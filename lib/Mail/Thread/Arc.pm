@@ -5,7 +5,7 @@ use Date::Parse qw( str2time );
 use base qw( Class::Accessor::Chained::Fast );
 __PACKAGE__->mk_accessors(qw( messages width height svg ));
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 =head1 NAME
 
@@ -37,14 +37,7 @@ http://www.research.ibm.com/remail/
 
 =head2 new
 
-Generic constructor
-
-=cut
-
-sub new {
-    my $class = shift;
-    bless {}, ref $class || $class;
-}
+Generic constructor, inherited from L<Class::Accessor::Chained::Fast>
 
 =head2 render( $root_container, %options )
 
