@@ -6,7 +6,7 @@ use base qw( Class::Accessor::Chained::Fast );
 __PACKAGE__->mk_accessors(qw( messages message_offsets selected_message
                               width height svg ));
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 =head1 NAME
 
