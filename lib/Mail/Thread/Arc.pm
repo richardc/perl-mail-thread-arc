@@ -126,17 +126,18 @@ sub message_x {
 sub draw_arc {
     my ($self, $from, $to) = @_;
 
-    my $radius = ($self->message_x( $to ) - $self->message_x( $from )) / 2;
-    my $center = $self->message_x( $from ) + $radius;
-    $self->svg->circle(
-        cx => $center,
-        cy => $self->max_arc_radius + $self->message_radius,
-        r  => $radius,
+    my $distance = $self->message_x( $to ) - $self->message_x( $from );
+    my $radius = $distance / 2;
+
+    my $x = $self->message_x( $from );
+    my $y = $self->max_arc_radius;
+    $self->svg->path(
+        d => "M $x,$y a$radius,$radius 0 1,1 $distance,0",
         style => {
-            stroke         => 'red',
-            fill           => 'none',
-            'stroke-width' => 1.5,
-           },
+            fill   => 'none',
+            stroke => 'black',
+            'stroke-width' => 2,
+        }
        );
 }
 
