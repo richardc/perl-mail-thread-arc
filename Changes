@@ -1,3 +1,7 @@
+HEAD
+	specify the xlink namespace so the links work
+
+
 0.22	Wednesday, 16th February, 2005
 	Add make_link method (Simon Wistow)
 	Some javascript doodlings to highlight message paths
