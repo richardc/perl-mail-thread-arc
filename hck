@@ -13,7 +13,7 @@ my $arc = Mail::Thread::Arc->new;
 $threader->thread;
 
 my $i;
-for my $thread ($threader->rootset) {
+for my $thread ( sort { $arc->date_of( $a ) <=> $arc->date_of( $b ) } $threader->rootset) {
     ++$i;
     my @messages;
     $thread->iterate_down(
@@ -23,12 +23,13 @@ for my $thread ($threader->rootset) {
             push @messages, $c;
         });
 
+    my $svg = $arc->selected_message( undef )->render( $thread );
+    write_file( "thread_$i.svg", $svg->xmlify );
+
+    next;
     @messages = sort {
         $arc->date_of( $a ) <=> $arc->date_of( $b )
     } @messages;
-
-    my $svg = $arc->selected_message( undef )->render( $thread );
-    write_file( "thread_$i.svg", $svg->xmlify );
 
     my $j;
     for my $message (@messages) {
