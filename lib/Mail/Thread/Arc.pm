@@ -5,7 +5,6 @@ use Date::Parse qw( str2time );
 use base qw( Class::Accessor::Chained::Fast );
 __PACKAGE__->mk_accessors(qw( messages width height svg ));
 
-
 our $VERSION = '1.00';
 
 =head1 NAME
@@ -109,7 +108,10 @@ sub message_style {
 sub draw_message {
     my ($self, $message) = @_;
 
-    $self->svg->circle(
+    my $group = $self->svg->group;
+    $group->title->cdata($message->message->header('from'));
+    $group->desc->cdata( "Date: ".$message->message->header('date') );
+    $group->circle(
         cx => $self->message_x( $message ),
         cy => $self->message_y,
         r  => $self->message_radius,
