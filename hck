@@ -15,13 +15,25 @@ $threader->thread;
 my $i;
 for my $thread ($threader->rootset) {
     ++$i;
-    my $j;
+    my @messages;
     $thread->iterate_down(
         sub {
             my $c = shift;
             return unless $c->message;
-            my $svg = $arc->highlight_message( $c )->render( $thread );
-            ++$j;
-            write_file( "thread_$i\_$j.svg", $svg->xmlify );
+            push @messages, $c;
         });
+
+    @messages = sort {
+        $arc->date_of( $a ) <=> $arc->date_of( $b )
+    } @messages;
+
+    my $svg = $arc->highlight_message( undef )->render( $thread );
+    write_file( "thread_$i.svg", $svg->xmlify );
+
+    my $j;
+    for my $message (@messages) {
+        my $svg = $arc->highlight_message( $message )->render( $thread );
+        ++$j;
+        write_file( "thread_$i\_$j.svg", $svg->xmlify );
+    }
 }
