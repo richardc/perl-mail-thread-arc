@@ -8,7 +8,7 @@ use Email::Folder;
 use Mail::Thread::Arc;
 
 my $threader = Email::Thread->new( Email::Folder->new('threadtest')->messages );
-my $arc = Mail::Thread::Arc->new;
+my $arc = Mail::Thread::Arc::Link->new;
 #$Mail::Thread::nosubject = 1;
 $threader->thread;
 
@@ -41,3 +41,12 @@ for my $thread ( sort { $arc->date_of( $a ) <=> $arc->date_of( $b ) } $threader-
 
 # follow with
 # java -jar /usr/share/batik/lib/batik-rasterizer.jar -onload *.svg
+
+package Mail::Thread::Arc::Link;
+
+use base qw(Mail::Thread::Arc);
+
+sub make_link {
+    return "http://london.pm.org";
+}
+1;

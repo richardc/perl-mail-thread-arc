@@ -95,7 +95,12 @@ sub draw_message {
     my ($self, $message) = @_;
 
     my $i = $self->message_offsets->{$message} - 1;
-    my $group = $self->svg->group(
+
+    my $link = $self->make_link($message);
+    my $root = $self->svg;
+    $root = $root->anchor( -href=> $link ) if defined $link;
+
+    my $group = $root->group(
         id          => "road$i",
         onmouseover => "set_group_color( $i, 'blue' )",
         $self->message_style( $message ),
@@ -109,7 +114,25 @@ sub draw_message {
         cy => $self->message_y,
         r  => $self->message_radius,
        );
+    
 }
+
+
+=head2 make_link( $message )
+
+Return an URI based on the message. By default returns 
+undef meaning that that the message is not a link.
+
+However if this module is subclassed then a meaningful
+URI can be returned where appropriate.
+
+=cut
+
+sub make_link {
+    my ($self, $message) = @_;
+    return;
+}
+
 
 =head2 draw_arc( $from, $to )
 
