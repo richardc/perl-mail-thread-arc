@@ -48,7 +48,7 @@ sub new {
 
 =head2 render( $root_container, %options )
 
-Renders the thread tree as an image arc.  Returns an Imager object.
+Renders the thread tree as an image arc.  Returns an SVG object.
 
 =cut
 
@@ -86,14 +86,32 @@ sub render {
     return $self->svg;
 }
 
+=head2 message_radius
+
+The radius of the message circles.
+
+=cut
+
 sub message_radius {
     7;
 }
+
+=head2 date_of( $container )
+
+The date the message was sent, in epoch seconds
+
+=cut
 
 sub date_of {
     my ($self, $container) = @_;
     return str2time $container->header( 'date' );
 }
+
+=head2 message_style( $container )
+
+Returns the style hash for the message circle.
+
+=cut
 
 sub message_style {
     my ($self, $message) = @_;
@@ -104,6 +122,12 @@ sub message_style {
         'stroke-width' => $self->message_radius / 4,
     };
 }
+
+=head2 draw_message( $message )
+
+Draw the message on the SVG canvas.
+
+=cut
 
 sub draw_message {
     my ($self, $message) = @_;
@@ -119,15 +143,34 @@ sub draw_message {
        );
 }
 
+=head2 message_x( $container )
+
+returns the X co-ordinate for a message
+
+=cut
+
 sub message_x {
     my ($self, $message) = @_;
     return $self->messages->{ $message } * $self->message_radius * 3;
 }
 
+=head2 message_y
+
+returns the Y co-ordinate for a message (expected to be constant for
+all messages)
+
+=cut
+
 sub message_y {
     my $self = shift;
     return $self->height / 2;
 }
+
+=head2 arc_style( $from, $to )
+
+Returns the style hash for the connecting arc,
+
+=cut
 
 sub arc_style {
     return {
@@ -136,6 +179,12 @@ sub arc_style {
         'stroke-width' => 2,
     }
 }
+
+=head2 draw_arc( $from, $to )
+
+draws an arc between two messages
+
+=cut
 
 sub draw_arc {
     my ($self, $from, $to) = @_;
@@ -152,6 +201,12 @@ sub draw_arc {
        );
 }
 
+=head2 thread_generation( $message )
+
+returns the thread generation of the container.
+
+=cut
+
 sub thread_generation {
     my ($self, $container) = @_;
 
@@ -166,3 +221,33 @@ sub thread_generation {
 
 1;
 __END__
+
+=head1 TODO
+
+=over
+
+=item
+
+Specify the maximum height for an arc
+
+=back
+
+=head1 AUTHOR
+
+Richard Clamp <richardc@unixbeard.net>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2003 Richard Clamp.  All Rights Reserved.
+
+This module is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+L<ReMail|http://www.research.ibm.com/remail/>, the IBM Research
+project that implements Thread Arcs.
+
+L<Mail::Thread>, L<Mail::Thread::Chronological>, L<SVG>
+
+=cut
