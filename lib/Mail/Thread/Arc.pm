@@ -69,7 +69,11 @@ sub render {
 
     $self->width( ( @messages + 1 ) * $self->message_radius * 3 );
     $self->height( $self->maximum_arc_height * 2 + $self->message_radius * 6 );
-    $self->svg( SVG->new( width => $self->width, height => $self->height, onload => "init(evt)" ) );
+    $self->svg( SVG->new( width         => $self->width,
+                          height        => $self->height,
+                          onload        => "init(evt)",
+                          'xmlns:xlink' => 'http://www.w3.org/1999/xlink',
+                         ) );
 
     {
         # assign the numbers needed to compute X
@@ -114,13 +118,13 @@ sub draw_message {
         cy => $self->message_y,
         r  => $self->message_radius,
        );
-    
+
 }
 
 
 =head2 make_link( $message )
 
-Return an URI based on the message. By default returns 
+Return an URI based on the message. By default returns
 undef meaning that that the message is not a link.
 
 However if this module is subclassed then a meaningful
