@@ -1,10 +1,9 @@
 use strict;
 package Mail::Thread::Arc;
-use Imager;
+use SVG;
 use Date::Parse qw( str2time );
-use Math::Bezier;
 use base qw( Class::Accessor::Chained::Fast );
-__PACKAGE__->mk_accessors(qw( messages imager ));
+__PACKAGE__->mk_accessors(qw( messages svg ));
 
 
 our $VERSION = '1.00';
@@ -23,9 +22,8 @@ Mail::Thread::Arc - Generates a Thread Arc reperesentation of a thread
  my $i;
  for my $thread ($threader->rootset) {
      ++$i;
-     my $imager = $arc->render( $thread );
-     $imager->write( file => "thread_$i.png" )
-       or die $imager->errstr;
+     my $svg = $arc->render( $thread );
+     write_file( "thread_$i.svg", $svg->xmlify );
  }
 
 =head1 DESCRIPTION
@@ -72,15 +70,11 @@ sub render {
         $self->date_of( $a ) <=> $self->date_of( $b )
     } @messages;
 
-    my $imager = Imager->new(
-        xsize => ( @messages + 1 ) * $self->message_radius * 3,
-        ysize => $self->message_radius * 2 + $self->max_arc_radius * 2,
-       )
-      or die Imager->errstr;
+    $self->svg( SVG->new(
+        width  => ( @messages + 1 ) * $self->message_radius * 3,
+        height => $self->message_radius * 2 + $self->max_arc_radius * 2,
+       ));
 
-    $self->imager( $imager );
-
-    $self->imager->flood_fill( x => 1, y => 1, color => '#ffffff' );
 
     $self->messages( {} );
     my $i;
@@ -92,7 +86,7 @@ sub render {
         $self->draw_arc( $message->parent, $message );
     }
 
-    return $self->imager;
+    return $self->svg;
 }
 
 sub message_radius {
@@ -116,19 +110,15 @@ sub date_of {
 sub draw_message {
     my ($self, $message) = @_;
 
-    # maybe there's a proper way to stroke this - I be slack
-    $self->imager->circle(
-        color => '#000000',
-        r => $self->message_radius,
-        x => $self->message_x( $message ),
-        'y' => $self->max_arc_radius + $self->message_radius,
-       );
-
-    $self->imager->circle(
-        color => '#ffffff',
-        r => $self->message_inner_radius,
-        x => $self->message_x( $message ),
-        'y' => $self->max_arc_radius + $self->message_radius,
+    $self->svg->circle(
+        cx => $self->message_x( $message ),
+        cy => $self->max_arc_radius + $self->message_radius,
+        r  => $self->message_radius,
+        style => {
+            stroke         => 'red',
+            fill           => 'white',
+            'stroke-width' => 4,
+           },
        );
 }
 
@@ -137,51 +127,22 @@ sub message_x {
     return $self->messages->{ $message } * $self->message_radius * 3;
 }
 
-*draw_arc = \&draw_arc_bezier;
-sub draw_arc_bezier {
+
+sub draw_arc {
     my ($self, $from, $to) = @_;
 
     my $radius = ($self->message_x( $to ) - $self->message_x( $from )) / 2;
     my $center = $self->message_x( $from ) + $radius;
-
-    my $bezier = Math::Bezier->new(
-        $self->message_x( $from ) => $self->max_arc_radius,
-        #$self->message_x( $from ) => 0,
-        #$self->message_x( $to )   => 0,
-        $center                   => 0,
-        $self->message_x( $to )   => $self->max_arc_radius,
+    $self->svg->circle(
+        cx => $center,
+        cy => $self->max_arc_radius + $self->message_radius,
+        r  => $radius,
+        style => {
+            stroke         => 'red',
+            fill           => 'none',
+            'stroke-width' => 4,
+           },
        );
-
-    my @points = $bezier->curve( $radius * 4 );
-    while (@points) {
-        my ($x, $y) = splice @points, 0, 2;
-        $self->imager->setpixel( x => $x, 'y' => $y, color => '#000000' );
-    }
-}
-
-sub draw_arc_imager {
-    my ($self, $from, $to) = @_;
-
-    my $radius = ($self->message_x( $to ) - $self->message_x( $from )) / 2;
-    my $center = $self->message_x( $from ) + $radius;
-
-    my %args = (
-        color => '#000000',
-        fill  => 0,
-        r => $radius,
-        x => $center,
-       );
-
-
-    if ($self->thread_generation( $to ) % 2) {
-        # draw arc above
-        @args{qw( d1 d2 y )} = (180, 0, $self->max_arc_radius);
-    }
-    else {
-        # draw arc below
-        @args{qw( d1 d2 y )} = (0, 180, $self->max_arc_radius + $self->message_radius * 2);
-    }
-    $self->imager->arc( %args );
 }
 
 sub thread_generation {

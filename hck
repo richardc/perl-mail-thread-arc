@@ -2,6 +2,7 @@
 use strict;
 use lib qw(lib);
 
+use File::Slurp qw( write_file );
 use Email::Thread;
 use Email::Folder;
 use Mail::Thread::Arc;
@@ -14,8 +15,6 @@ $threader->thread;
 my $i;
 for my $thread ($threader->rootset) {
     ++$i;
-    my $imager = $arc->render( $thread );
-    $imager->write( file => "thread_$i.png" )
-      or die $imager->errstr;
+    my $svg = $arc->render( $thread );
+    write_file( "thread_$i.svg", $svg->xmlify );
 }
-
