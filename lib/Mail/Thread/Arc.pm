@@ -90,12 +90,7 @@ sub render {
 }
 
 sub message_radius {
-    20;
-}
-
-sub message_inner_radius {
-    my $self = shift;
-    return $self->message_radius - $self->message_radius / 4;
+    10;
 }
 
 sub max_arc_radius {
@@ -117,7 +112,7 @@ sub draw_message {
         style => {
             stroke         => 'red',
             fill           => 'white',
-            'stroke-width' => 4,
+            'stroke-width' => $self->message_radius / 4,
            },
        );
 }
@@ -140,7 +135,7 @@ sub draw_arc {
         style => {
             stroke         => 'red',
             fill           => 'none',
-            'stroke-width' => 4,
+            'stroke-width' => 1.5,
            },
        );
 }
