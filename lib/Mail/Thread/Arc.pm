@@ -71,7 +71,7 @@ sub render {
     } @messages;
 
     my $imager = Imager->new(
-        xsize => ( @messages + 1 ) * $self->message_radius * 2,
+        xsize => ( @messages + 1 ) * $self->message_radius * 3,
         ysize => $self->message_radius * 2 + $self->max_arc_radius * 2,
        )
       or die Imager->errstr;
@@ -109,22 +109,42 @@ sub date_of {
 
 sub draw_message {
     my ($self, $message) = @_;
-    $self->imager->circle( color => '#000000',
-                           r => $self->message_radius / 2,
-                           x => $self->messages->{$message} * $self->message_radius * 2,
-                           y => $self->max_arc_radius +
-                                $self->message_radius);
+    $self->imager->circle(
+        color => '#000000',
+        r => $self->message_radius,
+        x => $self->message_x( $message ),
+        'y' => $self->max_arc_radius + $self->message_radius,
+       );
+}
+
+sub message_x {
+    my ($self, $message) = @_;
+    return $self->messages->{ $message } * $self->message_radius * 3;
 }
 
 sub draw_arc {
     my ($self, $from, $to) = @_;
 
+    my $radius = ($self->message_x( $to ) - $self->message_x( $from )) / 2;
+    my $center = $self->message_x( $from ) + $radius;
+
+    my %args = (
+        color => '#000000',
+        fill  => 0,
+        r => $radius,
+        x => $center,
+    );
+
     if ($self->thread_generation( $to ) % 2) {
         # draw arc above
+        @args{qw( d1 d2 y )} = (180, 0, $self->max_arc_radius);
     }
     else {
         # draw arc below
+        @args{qw( d1 d2 y )} = (0, 180, $self->max_arc_radius + $self->message_radius * 2);
     }
+
+    $self->imager->arc( %args );
 }
 
 sub thread_generation {
