@@ -75,17 +75,13 @@ sub render {
     $self->height( $self->maximum_arc_height * 2 + $self->message_radius * 6 );
     $self->svg( SVG->new( width => $self->width, height => $self->height ) );
 
-    $self->messages( {} );
-    my $i;
-
-    for my $message (@messages) {
-        # place the message
-        $self->messages->{$message} = ++$i;
-
-        $self->draw_message( $message );
-        next unless $message->parent;
-        $self->draw_arc( $message->parent, $message );
+    {
+        # assign the numbers needed to compute X
+        my $i;
+        $self->messages( { map { $_ => ++$i } @messages } );
     }
+    $self->draw_arc( $_->parent, $_ ) for @messages;
+    $self->draw_message( $_ ) for @messages;
 
     return $self->svg;
 }
@@ -119,6 +115,8 @@ draws an arc between two messages
 
 sub draw_arc {
     my ($self, $from, $to) = @_;
+
+    return unless $from;
 
     my $distance = $self->message_x( $to ) - $self->message_x( $from );
     my $radius = $distance/ 2;
@@ -260,16 +258,6 @@ sub date_of {
 1;
 __END__
 
-=head1 TODO
-
-=over
-
-=item
-
-Specify the maximum height for an arc
-
-=back
-
 =head1 AUTHOR
 
 Richard Clamp <richardc@unixbeard.net>
@@ -285,6 +273,9 @@ under the same terms as Perl itself.
 
 L<ReMail|http://www.research.ibm.com/remail/>, the IBM Research
 project that implements Thread Arcs.
+
+L<http://unixbeard.net/~richardc/mta/> - some sample output, alongside
+.pngs created with batik-rasteriser.
 
 L<Mail::Thread>, L<Mail::Thread::Chronological>, L<SVG>
 

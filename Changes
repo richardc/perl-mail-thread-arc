@@ -1,2 +1,8 @@
+0.20	Thursday, 11th December, 2003
+	Added in maximum_arc_height, plus a link to some sample output.
+
+	Switched the order of drawing (arcs first, messages after) -
+	fixes a small cosmetic glitch.
+	
 0.10	Thursday, 11th December, 2003
 	Initial CPAN release
