@@ -99,7 +99,7 @@ sub draw_message {
     my $i = $self->message_offsets->{$message} - 1;
     $group->circle(
         id => "road$i",
-        onmouseover => "set_group_color( $i, 'blue' )",
+        onmousedown => "set_group_color( $i, 'blue' )",
         cx => $self->message_x( $message ),
         cy => $self->message_y,
         r  => $self->message_radius,
