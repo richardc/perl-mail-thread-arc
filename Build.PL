@@ -7,8 +7,7 @@ Module::Build->new(
     requires    => {
         'Class::Accessor::Chained' => 0,
         'Date::Parse'  => 0,
-        'Imager'       => 0,
-        'List::Util'   => 0,
+        'SVG'          => 0,
         'Mail::Thread' => 0,
         'Test::More'   => 0,
     },
