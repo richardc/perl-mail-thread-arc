@@ -90,7 +90,7 @@ sub render {
 }
 
 sub message_radius {
-    10;
+    7;
 }
 
 sub max_arc_radius {
