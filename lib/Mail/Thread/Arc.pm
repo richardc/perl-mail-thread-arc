@@ -48,7 +48,9 @@ sub new {
 
 =head2 render( $root_container, %options )
 
-Renders the thread tree as an image arc.  Returns an SVG object.
+The main method.
+
+Renders the thread tree as a thread arc.  Returns an SVG object.
 
 =cut
 
@@ -75,9 +77,11 @@ sub render {
 
     $self->messages( {} );
     my $i;
+
     for my $message (@messages) {
         # place the message
         $self->messages->{$message} = ++$i;
+
         $self->draw_message( $message );
         next unless $message->parent;
         $self->draw_arc( $message->parent, $message );
@@ -86,42 +90,6 @@ sub render {
     return $self->svg;
 }
 
-=head2 message_radius
-
-The radius of the message circles.
-
-=cut
-
-sub message_radius {
-    7;
-}
-
-=head2 date_of( $container )
-
-The date the message was sent, in epoch seconds
-
-=cut
-
-sub date_of {
-    my ($self, $container) = @_;
-    return str2time $container->header( 'date' );
-}
-
-=head2 message_style( $container )
-
-Returns the style hash for the message circle.
-
-=cut
-
-sub message_style {
-    my ($self, $message) = @_;
-
-    return +{
-        stroke         => 'red',
-        fill           => 'white',
-        'stroke-width' => $self->message_radius / 4,
-    };
-}
 
 =head2 draw_message( $message )
 
@@ -141,6 +109,66 @@ sub draw_message {
         r  => $self->message_radius,
         style => $self->message_style( $message ),
        );
+}
+
+=head2 draw_arc( $from, $to )
+
+draws an arc between two messages
+
+=cut
+
+sub draw_arc {
+    my ($self, $from, $to) = @_;
+
+    my $distance = $self->message_x( $to ) - $self->message_x( $from );
+    my $radius = $distance/ 2;
+
+    my $top = $self->thread_generation( $to ) % 2;
+    my $x = $self->message_x( $from );
+    my $y = $self->message_y + ( $top ? -$self->message_radius : $self->message_radius);
+    $self->svg->path(
+        d => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
+        style => $self->arc_style( $from, $to ),
+       );
+}
+
+=head2 message_radius
+
+The radius of the message circles.
+
+=cut
+
+sub message_radius { 7 }
+
+=head2 message_style( $container )
+
+Returns the style hash for the message circle.
+
+=cut
+
+sub message_style {
+    my ($self, $message) = @_;
+
+    return +{
+        stroke         => 'red',
+        fill           => 'white',
+        'stroke-width' => $self->message_radius / 4,
+    };
+}
+
+=head2 arc_style( $from, $to )
+
+Returns the style hash for the connecting arc,
+
+=cut
+
+sub arc_style {
+    my ($self, $from, $to) = @_;
+    return {
+        fill   => 'none',
+        stroke => 'black',
+        'stroke-width' => $self->message_radius / 4,
+    }
 }
 
 =head2 message_x( $container )
@@ -166,41 +194,6 @@ sub message_y {
     return $self->height / 2;
 }
 
-=head2 arc_style( $from, $to )
-
-Returns the style hash for the connecting arc,
-
-=cut
-
-sub arc_style {
-    return {
-        fill   => 'none',
-        stroke => 'black',
-        'stroke-width' => 2,
-    }
-}
-
-=head2 draw_arc( $from, $to )
-
-draws an arc between two messages
-
-=cut
-
-sub draw_arc {
-    my ($self, $from, $to) = @_;
-
-    my $distance = $self->message_x( $to ) - $self->message_x( $from );
-    my $radius = $distance/ 2;
-
-    my $top = $self->thread_generation( $to ) % 2;
-    my $x = $self->message_x( $from );
-    my $y = $self->message_y + ( $top ? -$self->message_radius : $self->message_radius);
-    $self->svg->path(
-        d => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
-        style => $self->arc_style( $from, $to ),
-       );
-}
-
 =head2 thread_generation( $message )
 
 returns the thread generation of the container.
@@ -218,6 +211,18 @@ sub thread_generation {
 
     return $count;
 }
+
+=head2 date_of( $container )
+
+The date the message was sent, in epoch seconds
+
+=cut
+
+sub date_of {
+    my ($self, $container) = @_;
+    return str2time $container->header( 'date' );
+}
+
 
 1;
 __END__
