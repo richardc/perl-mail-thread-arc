@@ -174,15 +174,6 @@ sub message_style {
     };
 }
 
-sub on_path_to {
-    my ($self, $message, $target) = @_;
-    while ($target) {
-        return 1 if $message == $target;
-        $target = $target->parent;
-    }
-    return;
-}
-
 =head2 maximum_arc_height
 
 the maximum height of an arc.  default is 17 message radii
@@ -251,6 +242,21 @@ sub thread_generation {
     }
 
     return $count;
+}
+
+=head2 on_path_to( $message, $target )
+
+returns true if the $message lies along the path to $target
+
+=cut
+
+sub on_path_to {
+    my ($self, $message, $target) = @_;
+    while ($target) {
+        return 1 if $message == $target;
+        $target = $target->parent;
+    }
+    return;
 }
 
 =head2 date_of( $container )
