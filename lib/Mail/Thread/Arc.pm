@@ -5,7 +5,7 @@ use Date::Parse qw( str2time );
 use base qw( Class::Accessor::Chained::Fast );
 __PACKAGE__->mk_accessors(qw( messages width height svg ));
 
-our $VERSION = '1.00';
+our $VERSION = '0.10';
 
 =head1 NAME
 
