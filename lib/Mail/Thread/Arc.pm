@@ -3,7 +3,7 @@ package Mail::Thread::Arc;
 use SVG;
 use Date::Parse qw( str2time );
 use base qw( Class::Accessor::Chained::Fast );
-__PACKAGE__->mk_accessors(qw( messages svg ));
+__PACKAGE__->mk_accessors(qw( messages width height svg ));
 
 
 our $VERSION = '1.00';
@@ -70,11 +70,9 @@ sub render {
         $self->date_of( $a ) <=> $self->date_of( $b )
     } @messages;
 
-    $self->svg( SVG->new(
-        width  => ( @messages + 1 ) * $self->message_radius * 3,
-        height => $self->message_radius * 2 + $self->max_arc_radius * 2,
-       ));
-
+    $self->width( ( @messages + 1 ) * $self->message_radius * 3 );
+    $self->height( $self->width );
+    $self->svg( SVG->new( width => $self->width, height => $self->height ) );
 
     $self->messages( {} );
     my $i;
@@ -93,10 +91,6 @@ sub message_radius {
     7;
 }
 
-sub max_arc_radius {
-    100;
-}
-
 sub date_of {
     my ($self, $container) = @_;
     return str2time( Email::Thread->_get_hdr( $container->message, 'date' ) );
@@ -107,7 +101,7 @@ sub draw_message {
 
     $self->svg->circle(
         cx => $self->message_x( $message ),
-        cy => $self->max_arc_radius + $self->message_radius,
+        cy => $self->message_y,
         r  => $self->message_radius,
         style => {
             stroke         => 'red',
@@ -122,6 +116,11 @@ sub message_x {
     return $self->messages->{ $message } * $self->message_radius * 3;
 }
 
+sub message_y {
+    my $self = shift;
+    return $self->height / 2;
+}
+
 
 sub draw_arc {
     my ($self, $from, $to) = @_;
@@ -131,7 +130,7 @@ sub draw_arc {
 
     my $x = $self->message_x( $from );
     my $top = $self->thread_generation( $to ) % 2;
-    my $y   = $top ? $self->max_arc_radius : $self->max_arc_radius + $self->message_radius * 2;
+    my $y   = $self->message_y + ( $top ? -$self->message_radius : $self->message_radius);
     $self->svg->path(
         d => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
         style => {
