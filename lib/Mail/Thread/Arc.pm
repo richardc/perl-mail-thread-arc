@@ -1,8 +1,9 @@
 use strict;
 package Mail::Thread::Arc;
-use base qw( Class::Accessor::Fast );
-use Imager;
 our $VERSION = '1.00';
+use base qw( Class::Accessor::Chained::Fast );
+__PACKAGE__->mk_accessors( 'imager' );
+use Imager;
 
 =head1 NAME
 

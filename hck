@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+use strict;
+use lib qw(lib);
+
+use Email::Thread;
+use Email::Folder;
+use Mail::Thread::Arc;
+
+my $threader = Email::Thread->new( Email::Folder->new('threadtest')->messages );
+my $arc = Mail::Thread::Arc->new;
+
+$threader->thread;
+
+my $i;
+for my $thread ($threader->rootset) {
+    ++$i;
+    my $imager = $arc->render( $thread );
+    $imager->write( file => "thread_$i.png" )
+      or die $imager->errstr;
+}
+
