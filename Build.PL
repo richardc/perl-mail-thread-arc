@@ -9,6 +9,7 @@ Module::Build->new(
         'Date::Parse'  => 0,
         'List::Util'   => 0,
         'Test::More'   => 0,
+        'Imager'       => 0,
     },
     create_makefile_pl => 'passthrough',
    )
