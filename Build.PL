@@ -8,7 +8,7 @@ Module::Build->new(
         'Class::Accessor::Chained' => 0,
         'Date::Parse'  => 0,
         'SVG'          => 0,
-        'Mail::Thread' => '2.4',
+        'Mail::Thread' => '2.41',
         'Test::More'   => 0,
     },
     create_makefile_pl => 'passthrough',
