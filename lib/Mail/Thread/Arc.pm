@@ -137,9 +137,10 @@ sub draw_arc {
 
         $self->svg->path(
             d => join(' ',
-                      "M $x,$y a$max,$max 0 0,$top $max,$toy",    # arc up
-                      "",                                         # line across
-                      "M $x2,$y2 a$max,$max 0 0,$top $max,$toy2", # arc down
+                      "M $x,$y",                        #start the path
+                      "a$max,$max 0 0,$top $max,$toy",  # arc up
+                      "L $x2,$y2",                      # line across
+                      "a$max,$max 0 0,$top $max,$toy2", # arc down
                      ),
             style => $self->arc_style( $from, $to ),
            );
