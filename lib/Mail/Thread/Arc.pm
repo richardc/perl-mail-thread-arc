@@ -72,7 +72,7 @@ sub render {
     } @messages;
 
     $self->width( ( @messages + 1 ) * $self->message_radius * 3 );
-    $self->height( $self->width );
+    $self->height( $self->maximum_arc_height * 2 + $self->message_radius * 6 );
     $self->svg( SVG->new( width => $self->width, height => $self->height ) );
 
     $self->messages( {} );
@@ -126,10 +126,30 @@ sub draw_arc {
     my $top = $self->thread_generation( $to ) % 2;
     my $x = $self->message_x( $from );
     my $y = $self->message_y + ( $top ? -$self->message_radius : $self->message_radius);
-    $self->svg->path(
-        d => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
-        style => $self->arc_style( $from, $to ),
-       );
+
+    if ($radius > $self->maximum_arc_height) { # uh oh - trickyness
+        my $max = $self->maximum_arc_height;
+        # to Y - the relative part of the first curve
+        my $toy = $top ? -$max : $max;
+        my $toy2 = -$toy;
+        my $x2 = $self->message_x( $to ) - $max;
+        my $y2 = $y + $toy;
+
+        $self->svg->path(
+            d => join(' ',
+                      "M $x,$y a$max,$max 0 0,$top $max,$toy",    # arc up
+                      "",                                         # line across
+                      "M $x2,$y2 a$max,$max 0 0,$top $max,$toy2", # arc down
+                     ),
+            style => $self->arc_style( $from, $to ),
+           );
+    }
+    else {
+        $self->svg->path(
+            d => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
+            style => $self->arc_style( $from, $to ),
+           );
+    }
 }
 
 =head2 message_radius
@@ -155,6 +175,17 @@ sub message_style {
         fill           => 'white',
         'stroke-width' => $self->message_radius / 4,
     };
+}
+
+=head2 maximum_arc_height
+
+the maximum height of an arc.  default is 17 message radii
+
+=cut
+
+sub maximum_arc_height {
+    my $self = shift;
+    return $self->message_radius * 17
 }
 
 =head2 arc_style( $from, $to )
