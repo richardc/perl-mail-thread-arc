@@ -92,7 +92,7 @@ sub message_radius {
 
 sub date_of {
     my ($self, $container) = @_;
-    return str2time( Email::Thread->_get_hdr( $container->message, 'date' ) );
+    return str2time $container->header( 'date' );
 }
 
 sub message_style {
@@ -109,8 +109,8 @@ sub draw_message {
     my ($self, $message) = @_;
 
     my $group = $self->svg->group;
-    $group->title->cdata($message->message->header('from'));
-    $group->desc->cdata( "Date: ".$message->message->header('date') );
+    $group->title->cdata( $message->header('from') );
+    $group->desc->cdata( "Date: " . $message->header('date') );
     $group->circle(
         cx => $self->message_x( $message ),
         cy => $self->message_y,
