@@ -30,6 +30,7 @@ for my $thread ($threader->rootset) {
     my $svg = $arc->highlight_message( undef )->render( $thread );
     write_file( "thread_$i.svg", $svg->xmlify );
 
+    next;
     my $j;
     for my $message (@messages) {
         my $svg = $arc->highlight_message( $message )->render( $thread );

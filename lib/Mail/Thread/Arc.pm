@@ -3,7 +3,7 @@ package Mail::Thread::Arc;
 use SVG;
 use Date::Parse qw( str2time );
 use base qw( Class::Accessor::Chained::Fast );
-__PACKAGE__->mk_accessors(qw( messages highlight_message width height svg ));
+__PACKAGE__->mk_accessors(qw( messages message_offsets highlight_message width height svg ));
 
 our $VERSION = '0.21';
 
@@ -64,15 +64,19 @@ sub render {
         $self->date_of( $a ) <=> $self->date_of( $b )
     } @messages;
 
+    $self->messages( \@messages );
+
     $self->width( ( @messages + 1 ) * $self->message_radius * 3 );
     $self->height( $self->maximum_arc_height * 2 + $self->message_radius * 6 );
-    $self->svg( SVG->new( width => $self->width, height => $self->height ) );
+    $self->svg( SVG->new( width => $self->width, height => $self->height, onload => "init(evt)" ) );
 
     {
         # assign the numbers needed to compute X
         my $i;
-        $self->messages( { map { $_ => ++$i } @messages } );
+        $self->message_offsets( { map { $_ => ++$i } @messages } );
     }
+    $self->svg->script->CDATA( $self->javascript_chunk );
+
     $self->draw_arc( $_->parent, $_ ) for @messages;
     $self->draw_message( $_ ) for @messages;
 
@@ -92,7 +96,10 @@ sub draw_message {
     my $group = $self->svg->group;
     $group->title->cdata( $message->header('from') );
     $group->desc->cdata( "Date: " . $message->header('date') );
+    my $i = $self->message_offsets->{$message} - 1;
     $group->circle(
+        id => "road$i",
+        onmouseover => "set_group_color( $i, 'blue' )",
         cx => $self->message_x( $message ),
         cy => $self->message_y,
         r  => $self->message_radius,
@@ -118,6 +125,8 @@ sub draw_arc {
     my $x = $self->message_x( $from );
     my $y = $self->message_y + ( $top ? -$self->message_radius : $self->message_radius);
 
+    my %offsets = %{ $self->message_offsets };
+    my $id = "road$offsets{ $from }-$offsets{ $to }";
     if ($radius > $self->maximum_arc_height) { # uh oh - trickyness
         my $max = $self->maximum_arc_height;
         # to Y - the relative part of the first curve
@@ -134,12 +143,14 @@ sub draw_arc {
                       "a$max,$max 0 0,$top $max,$toy2", # arc down
                      ),
             style => $self->arc_style( $from, $to ),
+            id    => $id,
            );
     }
     else {
         $self->svg->path(
-            d => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
+            d     => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
             style => $self->arc_style( $from, $to ),
+            id    => $id,
            );
     }
 }
@@ -211,7 +222,7 @@ returns the X co-ordinate for a message
 
 sub message_x {
     my ($self, $message) = @_;
-    return $self->messages->{ $message } * $self->message_radius * 3;
+    return $self->message_offsets->{ $message } * $self->message_radius * 3;
 }
 
 =head2 message_y
@@ -268,6 +279,72 @@ The date the message was sent, in epoch seconds
 sub date_of {
     my ($self, $container) = @_;
     return str2time $container->header( 'date' );
+}
+
+sub javascript_chunk {
+    my $self = shift;
+    my $js = <<'END';
+/* lifted from http://roasp.com/tutorial/tutorial5.shtml */
+var SVGDoc;
+var groups = new Array();
+var last_group;
+
+function init(e) {
+    SVGDoc = e.getTarget().getOwnerDocument();
+END
+
+    # just what groups do we manage?
+    my %offset = %{ $self->message_offsets };
+    for my $id (sort { $a <=> $b } values %offset) {
+        my $group = $id - 1;
+        my @path = $group;
+        my $message = $self->messages->[$group];
+        while ($message) {
+            last unless $message->parent;
+            push @path, "'$offset{ $message->parent }-$offset{ $message }'";
+            $message = $message->parent;
+        }
+
+        $js .= "    append_group( ". join(', ', @path ) . " ); // road $group\n"
+    }
+
+    $js .= <<'END';
+}
+
+function append_group() {
+    var roads = new Array();
+    for (var i = 0; i < arguments.length; i++) {
+        var index = arguments[i];
+        var road  = SVGDoc.getElementById("road" + index);
+        roads[roads.length] = road;
+    }
+    groups[groups.length] = roads;
+}
+
+function set_group_color(group_index, color) {
+    if ( last_group != null ) {
+        _set_group_color(last_group, "black");
+    }
+    _set_group_color(group_index, color);
+    last_group = group_index;
+}
+
+function _set_group_color(group_index, color) {
+    var roads = groups[group_index];
+
+    for (var i = 0; i < roads.length; i++) {
+         var road = roads[i];
+
+         // alert( "Setting " + road + " to " + color );
+         // set the color
+         road.setAttribute("stroke", color);
+         // pop to top?
+         //road.getParentNode.appendChild(road);
+    }
+}
+END
+
+    return $js;
 }
 
 
