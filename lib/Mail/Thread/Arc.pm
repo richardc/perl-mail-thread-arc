@@ -134,11 +134,12 @@ sub draw_arc {
 
 =head2 message_radius
 
-The radius of the message circles.
+The radius of the message circles.  The most magic of all the magic
+numbers.
 
 =cut
 
-sub message_radius { 7 }
+sub message_radius { 5 }
 
 =head2 message_style( $container )
 
