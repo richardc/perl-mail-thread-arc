@@ -93,17 +93,20 @@ Draw the message on the SVG canvas.
 sub draw_message {
     my ($self, $message) = @_;
 
-    my $group = $self->svg->group;
+    my $i = $self->message_offsets->{$message} - 1;
+    my $group = $self->svg->group(
+        id          => "road$i",
+        onmousedown => "set_group_color( $i, 'blue' )",
+        $self->message_style( $message ),
+       );
+
     $group->title->cdata( $message->header('from') );
     $group->desc->cdata( "Date: " . $message->header('date') );
-    my $i = $self->message_offsets->{$message} - 1;
+
     $group->circle(
-        id => "road$i",
-        onmousedown => "set_group_color( $i, 'blue' )",
         cx => $self->message_x( $message ),
         cy => $self->message_y,
         r  => $self->message_radius,
-        style => $self->message_style( $message ),
        );
 }
 
@@ -126,7 +129,8 @@ sub draw_arc {
     my $y = $self->message_y + ( $top ? -$self->message_radius : $self->message_radius);
 
     my %offsets = %{ $self->message_offsets };
-    my $id = "road$offsets{ $from }-$offsets{ $to }";
+
+    my $path;
     if ($radius > $self->maximum_arc_height) { # uh oh - trickyness
         my $max = $self->maximum_arc_height;
         # to Y - the relative part of the first curve
@@ -135,24 +139,22 @@ sub draw_arc {
         my $x2 = $self->message_x( $to ) - $max;
         my $y2 = $y + $toy;
 
-        $self->svg->path(
-            d => join(' ',
-                      "M $x,$y",                        #start the path
-                      "a$max,$max 0 0,$top $max,$toy",  # arc up
-                      "L $x2,$y2",                      # line across
-                      "a$max,$max 0 0,$top $max,$toy2", # arc down
-                     ),
-            style => $self->arc_style( $from, $to ),
-            id    => $id,
-           );
+        $path = join(' ',
+                     "M $x,$y",                        #start the path
+                     "a$max,$max 0 0,$top $max,$toy",  # arc up
+                     "L $x2,$y2",                      # line across
+                     "a$max,$max 0 0,$top $max,$toy2", # arc down
+                    );
     }
     else {
-        $self->svg->path(
-            d     => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
-            style => $self->arc_style( $from, $to ),
-            id    => $id,
-           );
+        $path = "M $x,$y a$radius,$radius 0 1,$top $distance,0";
     }
+
+    my $group = $self->svg->group(
+        id => "road$offsets{ $from }-$offsets{ $to }",
+        $self->arc_style( $from, $to )
+       );
+    $group->path( d  => $path );
 }
 
 =head2 message_radius
@@ -178,11 +180,11 @@ sub message_style {
                                             $self->highlight_message );
     $colour = 'green' if $message == $self->highlight_message;
 
-    return {
+    return (
         stroke         => $colour,
         fill           => 'white',
         'stroke-width' => $self->message_radius / 4,
-    };
+    );
 }
 
 =head2 maximum_arc_height
@@ -207,11 +209,11 @@ sub arc_style {
 
     my $colour = 'black';
     $colour = 'blue'  if $self->on_path_to( $to, $self->highlight_message );
-    return {
+    return (
         stroke => $colour,
         fill   => 'none',
         'stroke-width' => $self->message_radius / 4,
-    }
+    );
 }
 
 =head2 message_x( $container )
@@ -297,11 +299,12 @@ END
     my %offset = %{ $self->message_offsets };
     for my $id (sort { $a <=> $b } values %offset) {
         my $group = $id - 1;
-        my @path = $group;
         my $message = $self->messages->[$group];
+        my @path = $id - 1;
         while ($message) {
             last unless $message->parent;
-            push @path, "'$offset{ $message->parent }-$offset{ $message }'";
+            push @path, $offset{ $message->parent } - 1,
+              "'$offset{ $message->parent }-$offset{ $message }'";
             $message = $message->parent;
         }
 
@@ -335,11 +338,11 @@ function _set_group_color(group_index, color) {
     for (var i = 0; i < roads.length; i++) {
          var road = roads[i];
 
-         // alert( "Setting " + road + " to " + color );
+         //alert( "Setting " + road + " to " + color );
          // set the color
          road.setAttribute("stroke", color);
-         // pop to top?
-         //road.getParentNode.appendChild(road);
+         // pop to top - seems to blow errors on circles
+         // road.getParentNode.appendChild(road);
     }
 }
 END
