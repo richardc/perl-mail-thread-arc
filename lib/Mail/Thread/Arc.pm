@@ -96,6 +96,16 @@ sub date_of {
     return str2time( Email::Thread->_get_hdr( $container->message, 'date' ) );
 }
 
+sub message_style {
+    my ($self, $message) = @_;
+
+    return +{
+        stroke         => 'red',
+        fill           => 'white',
+        'stroke-width' => $self->message_radius / 4,
+    };
+}
+
 sub draw_message {
     my ($self, $message) = @_;
 
@@ -103,11 +113,7 @@ sub draw_message {
         cx => $self->message_x( $message ),
         cy => $self->message_y,
         r  => $self->message_radius,
-        style => {
-            stroke         => 'red',
-            fill           => 'white',
-            'stroke-width' => $self->message_radius / 4,
-           },
+        style => $self->message_style( $message ),
        );
 }
 
@@ -121,6 +127,13 @@ sub message_y {
     return $self->height / 2;
 }
 
+sub arc_style {
+    return {
+        fill   => 'none',
+        stroke => 'black',
+        'stroke-width' => 2,
+    }
+}
 
 sub draw_arc {
     my ($self, $from, $to) = @_;
@@ -128,16 +141,12 @@ sub draw_arc {
     my $distance = $self->message_x( $to ) - $self->message_x( $from );
     my $radius = $distance/ 2;
 
-    my $x = $self->message_x( $from );
     my $top = $self->thread_generation( $to ) % 2;
-    my $y   = $self->message_y + ( $top ? -$self->message_radius : $self->message_radius);
+    my $x = $self->message_x( $from );
+    my $y = $self->message_y + ( $top ? -$self->message_radius : $self->message_radius);
     $self->svg->path(
         d => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
-        style => {
-            fill   => 'none',
-            stroke => 'black',
-            'stroke-width' => 2,
-        }
+        style => $self->arc_style( $from, $to ),
        );
 }
 
