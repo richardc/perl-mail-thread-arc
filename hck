@@ -9,7 +9,7 @@ use Mail::Thread::Arc;
 
 my $threader = Email::Thread->new( Email::Folder->new('threadtest')->messages );
 my $arc = Mail::Thread::Arc->new;
-$Mail::Thread::nosubject = 1;
+#$Mail::Thread::nosubject = 1;
 $threader->thread;
 
 my $i;
