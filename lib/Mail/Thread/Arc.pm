@@ -3,7 +3,7 @@ package Mail::Thread::Arc;
 use SVG;
 use Date::Parse qw( str2time );
 use base qw( Class::Accessor::Chained::Fast );
-__PACKAGE__->mk_accessors(qw( messages width height svg ));
+__PACKAGE__->mk_accessors(qw( messages highlight_message width height svg ));
 
 our $VERSION = '0.21';
 
@@ -162,11 +162,25 @@ Returns the style hash for the message circle.
 sub message_style {
     my ($self, $message) = @_;
 
-    return +{
-        stroke         => 'red',
+    my $colour = 'red';
+    $colour = 'blue'  if $self->on_path_to( $message,
+                                            $self->highlight_message );
+    $colour = 'green' if $message == $self->highlight_message;
+
+    return {
+        stroke         => $colour,
         fill           => 'white',
         'stroke-width' => $self->message_radius / 4,
     };
+}
+
+sub on_path_to {
+    my ($self, $message, $target) = @_;
+    while ($target) {
+        return 1 if $message == $target;
+        $target = $target->parent;
+    }
+    return;
 }
 
 =head2 maximum_arc_height
@@ -188,9 +202,12 @@ Returns the style hash for the connecting arc,
 
 sub arc_style {
     my ($self, $from, $to) = @_;
+
+    my $colour = 'black';
+    $colour = 'blue'  if $self->on_path_to( $to, $self->highlight_message );
     return {
+        stroke => $colour,
         fill   => 'none',
-        stroke => 'black',
         'stroke-width' => $self->message_radius / 4,
     }
 }

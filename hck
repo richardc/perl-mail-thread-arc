@@ -15,6 +15,13 @@ $threader->thread;
 my $i;
 for my $thread ($threader->rootset) {
     ++$i;
-    my $svg = $arc->render( $thread );
-    write_file( "thread_$i.svg", $svg->xmlify );
+    my $j;
+    $thread->iterate_down(
+        sub {
+            my $c = shift;
+            return unless $c->message;
+            my $svg = $arc->highlight_message( $c )->render( $thread );
+            ++$j;
+            write_file( "thread_$i\_$j.svg", $svg->xmlify );
+        });
 }
