@@ -96,7 +96,7 @@ sub draw_message {
     my $i = $self->message_offsets->{$message} - 1;
     my $group = $self->svg->group(
         id          => "road$i",
-        onmousedown => "set_group_color( $i, 'blue' )",
+        onmouseover => "set_group_color( $i, 'blue' )",
         $self->message_style( $message ),
        );
 
