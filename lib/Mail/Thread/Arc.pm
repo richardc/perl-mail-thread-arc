@@ -3,7 +3,8 @@ package Mail::Thread::Arc;
 use SVG;
 use Date::Parse qw( str2time );
 use base qw( Class::Accessor::Chained::Fast );
-__PACKAGE__->mk_accessors(qw( messages message_offsets highlight_message width height svg ));
+__PACKAGE__->mk_accessors(qw( messages message_offsets selected_message
+                              width height svg ));
 
 our $VERSION = '0.21';
 
@@ -175,13 +176,8 @@ Returns the style hash for the message circle.
 sub message_style {
     my ($self, $message) = @_;
 
-    my $colour = 'red';
-    $colour = 'blue'  if $self->on_path_to( $message,
-                                            $self->highlight_message );
-    $colour = 'green' if $message == $self->highlight_message;
-
     return (
-        stroke         => $colour,
+        stroke         => 'red',
         fill           => 'white',
         'stroke-width' => $self->message_radius / 4,
     );
@@ -207,10 +203,8 @@ Returns the style hash for the connecting arc,
 sub arc_style {
     my ($self, $from, $to) = @_;
 
-    my $colour = 'black';
-    $colour = 'blue'  if $self->on_path_to( $to, $self->highlight_message );
     return (
-        stroke => $colour,
+        stroke => 'black',
         fill   => 'none',
         'stroke-width' => $self->message_radius / 4,
     );
@@ -257,21 +251,6 @@ sub thread_generation {
     return $count;
 }
 
-=head2 on_path_to( $message, $target )
-
-returns true if the $message lies along the path to $target
-
-=cut
-
-sub on_path_to {
-    my ($self, $message, $target) = @_;
-    while ($target) {
-        return 1 if $message == $target;
-        $target = $target->parent;
-    }
-    return;
-}
-
 =head2 date_of( $container )
 
 The date the message was sent, in epoch seconds
@@ -309,6 +288,11 @@ END
         }
 
         $js .= "    append_group( ". join(', ', @path ) . " ); // road $group\n"
+    }
+
+    if (my $m = $self->selected_message) {
+        my $group = $offset{ $m } - 1;
+        $js .= "    set_group_color( $group, 'blue' ); // select group $group\n"
     }
 
     $js .= <<'END';

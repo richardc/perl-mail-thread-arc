@@ -27,14 +27,16 @@ for my $thread ($threader->rootset) {
         $arc->date_of( $a ) <=> $arc->date_of( $b )
     } @messages;
 
-    my $svg = $arc->highlight_message( undef )->render( $thread );
+    my $svg = $arc->selected_message( undef )->render( $thread );
     write_file( "thread_$i.svg", $svg->xmlify );
 
-    next;
     my $j;
     for my $message (@messages) {
-        my $svg = $arc->highlight_message( $message )->render( $thread );
+        my $svg = $arc->selected_message( $message )->render( $thread );
         ++$j;
         write_file( "thread_$i\_$j.svg", $svg->xmlify );
     }
 }
+
+# follow with
+# java -jar /usr/share/batik/lib/batik-rasterizer.jar -onload *.svg
