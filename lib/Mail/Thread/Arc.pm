@@ -70,9 +70,18 @@ sub render {
 }
 
 sub draw_message {
+    my ($self, $message) = @_;
 }
 
 sub draw_arc {
+    my ($self, $from, $to) = @_;
+
+    if ($to->generation % 2) {
+        # draw arc above
+    }
+    else {
+        # draw arc below
+    }
 }
 
 1;
