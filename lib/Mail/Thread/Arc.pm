@@ -127,12 +127,13 @@ sub draw_arc {
     my ($self, $from, $to) = @_;
 
     my $distance = $self->message_x( $to ) - $self->message_x( $from );
-    my $radius = $distance / 2;
+    my $radius = $distance/ 2;
 
     my $x = $self->message_x( $from );
-    my $y = $self->max_arc_radius;
+    my $top = $self->thread_generation( $to ) % 2;
+    my $y   = $top ? $self->max_arc_radius : $self->max_arc_radius + $self->message_radius * 2;
     $self->svg->path(
-        d => "M $x,$y a$radius,$radius 0 1,1 $distance,0",
+        d => "M $x,$y a$radius,$radius 0 1,$top $distance,0",
         style => {
             fill   => 'none',
             stroke => 'black',
