@@ -1,5 +1,6 @@
 use strict;
 package Mail::Thread::Arc;
+use base qw( Class::Accessor::Fast );
 use Imager;
 our $VERSION = '1.00';
 
@@ -30,9 +31,48 @@ documentation for IBM's remail project.
 
 http://www.research.ibm.com/remail/
 
+=head1 METHODS
+
+=head2 new
+
+Generic constructor
+
 =cut
 
 sub new {
+    my $class = shift;
+    bless {}, ref $class || $class;
+}
+
+=head2 render( $root_container, %options )
+
+Renders the thread tree as an image arc.  Returns an Imager object.
+
+=cut
+
+sub render {
+    my $self = shift;
+
+    $self->imager( Imager->new );
+
+    my @messages;
+    # sort all the messages chronologically
+    # find the generation depth of each message
+
+    for my $message (@messages) {
+        # place the message
+        $self->draw_message( $message );
+        next unless $message->parent;
+        $self->draw_arc( $message->parent, $message );
+    }
+
+    return $self->imager;
+}
+
+sub draw_message {
+}
+
+sub draw_arc {
 }
 
 1;
